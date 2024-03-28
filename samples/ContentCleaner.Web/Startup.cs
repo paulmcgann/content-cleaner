@@ -62,11 +62,11 @@ namespace ContentCleaner.Web
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.AddContentCleaner();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapContent();
-                endpoints.MapControllers();
             });
         }
     }

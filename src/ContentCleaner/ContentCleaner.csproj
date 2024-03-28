@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Content Cleaner</Title>
     <Authors>Paul McGann</Authors>
     <Description>An Optimizely CMS 12 plugin to let you find content of a specific type and delete all or selected instances.</Description>
@@ -14,6 +14,9 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <PackageTags>optimizely;content;clean;cleaning;content type;</PackageTags>
+    <RepositoryUrl>https://github.com/paulmcgann/content-cleaner</RepositoryUrl>
+    <Version>1.0.0</Version>
+    <PackageProjectUrl>https://github.com/paulmcgann/content-cleaner</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

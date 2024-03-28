@@ -1,5 +1,6 @@
 ﻿using ContentCleaner.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ContentCleaner.Config
@@ -27,6 +28,18 @@ namespace ContentCleaner.Config
             }
 
             return services;
+        }
+
+        public static IApplicationBuilder AddContentCleaner(this IApplicationBuilder builder)
+        {
+            return builder.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "ContentCleanerAdmin",
+                    pattern: "{controller=ContentCleanerAdmin}/{action=Index}/{id?}"
+                    );
+                endpoints.MapControllerRoute("ContentCleanerAdminApi", "api/{controller}/{action}/{id?}");
+            });
         }
     }
 }

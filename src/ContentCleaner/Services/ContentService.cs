@@ -46,6 +46,7 @@ namespace ContentCleaner.Services
                 .Select(x => new ContentUsageDataViewModel()
                 {
                     Id = x.ContentLink.ID,
+                    TypeId = selectedTypeID,
                     EditUrl = GetEditUrl(x.ContentLink),
                     Location = GetLocation(x.ContentLink),
                 })

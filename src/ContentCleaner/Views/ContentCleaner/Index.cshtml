@@ -1,0 +1,130 @@
+﻿@using EPiServer.Shell.Navigation
+@model ContentCleaner.ViewModels.ContentCleanerViewModel
+
+@{
+    Layout = "";
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Content Cleaner</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/2.0.3/css/dataTables.bootstrap5.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+</head>
+<body>
+    @Html.CreatePlatformNavigationMenu()
+    <div @Html.ApplyPlatformNavigation()>
+        <main class="container">
+            <div class="bg-body-tertiary p-5 rounded">
+                <h1>Content Cleaner</h1>
+                <p class="lead">This example is a quick exercise to illustrate how fixed to top navbar works. As you scroll, it will remain fixed to the top of your browser’s viewport.</p>
+                <form>
+                    <div class="mb-3">
+                        <label for="ddlContentTypes" class="form-label">Content Types</label>
+                        <select id="ddlContentTypes" class="form-select">
+                            <option selected>Please select</option>
+                            @foreach (var item in Model.ContentItems)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+                <table id="example" class="display" style="width:100%;display:none;">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Location</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Id</th>
+                            <th>Location</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </main>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.bootstrap5.js"></script>
+
+    <script type="text/javascript">
+        jQuery.noConflict();
+        (function ($) {
+
+            function DeleteContentById(id) {
+
+                fetch('/content.cleaner/api/delete?contentRef=' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: null
+                })
+            }
+
+            function GetContentTypes() {
+                var contentTypeId = $("select#ddlContentTypes option:checked").val();
+
+                if ($.fn.dataTable.isDataTable('#example')) {
+                    $('#example').DataTable().destroy();
+                }
+
+                var table = new DataTable('#example', {
+                    ajax: '/content.cleaner/api/getcontenttypeusage?contentTypeId=' + contentTypeId,
+                    columns: [
+                        { data: 'id' },
+                        { data: 'location' },
+                        {
+                            data: null,
+                            render: function (data, type, row) {
+                                return '<a href=' + data.editUrl + ' target="_blank" role="button" class="btn btn-sm btn-primary" style="color:#fff"><i class="fa fa-pencil"></i></a>';
+                            }
+                        },
+                        {
+                            data: null,
+                            render: function (data, type, row) {
+                                return '<button type="button" class="btn btn-sm btn-primary"><i class="fa fa-trash"></i></button>';
+                            }
+                        }
+                    ],
+                    processing: true,
+                    serverSide: true,
+                    ordering: false,
+                    paging: false,
+                    searching: false
+                });
+
+                $('#example').show();
+
+                table.on('click', 'button', function (e) {
+                    let data = table.row(e.target.closest('tr')).data();
+                    DeleteContentById(data.id);
+                    GetContentTypes();
+                });
+            }
+
+            $("form").on("submit", function (event) {
+
+                event.preventDefault();
+
+                GetContentTypes();
+            });
+
+        })(jQuery);
+    </script>
+</body>
+</html>

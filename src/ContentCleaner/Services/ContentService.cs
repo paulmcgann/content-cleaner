@@ -13,13 +13,19 @@ namespace ContentCleaner.Services
         private readonly IContentLoader _contentLoader;
         private readonly IContentTypeRepository _contentTypeRepository;
         private readonly IContentModelUsage _contentModelUsage;
+        private readonly ContentTypeModelRepository _contentTypeModelRepository;
         private readonly EditUrlResolver _editUrlResolver;
 
-        public ContentService(IContentLoader contentLoader, IContentTypeRepository contentTypeRepository, IContentModelUsage contentModelUsage, EditUrlResolver editUrlResolver)
+        public ContentService(IContentLoader contentLoader,
+            IContentTypeRepository contentTypeRepository,
+            IContentModelUsage contentModelUsage,
+            ContentTypeModelRepository contentTypeModelRepository,
+            EditUrlResolver editUrlResolver)
         {
             _contentLoader = contentLoader;
             _contentTypeRepository = contentTypeRepository;
             _contentModelUsage = contentModelUsage;
+            _contentTypeModelRepository = contentTypeModelRepository;
             _editUrlResolver = editUrlResolver;
         }
 
@@ -38,7 +44,7 @@ namespace ContentCleaner.Services
             }).ToList();
         }
 
-        public List<ContentUsageDataViewModel> GetContentTypeUsage(int selectedTypeID)
+        public IEnumerable<ContentUsageDataViewModel> GetContentTypeUsage(int selectedTypeID)
         {
             var contentType = _contentTypeRepository.Load(selectedTypeID);
 
@@ -77,6 +83,29 @@ namespace ContentCleaner.Services
             }
 
             return $"{path}\\{content.Name}".Trim("\\".ToCharArray());
+        }
+
+        public IEnumerable<MissingPropertiesDataViewModel> GetMissingProperties()
+        {
+            var pageProperties = from type in _contentTypeRepository.List()
+                                 from property in type.PropertyDefinitions.Where(property => IsMissingModelProperty(property))
+                                 select new MissingPropertiesDataViewModel
+                                 {
+                                     Id=property.ID,
+                                     Name = property.Name,
+                                 };
+
+
+            return pageProperties;
+        }
+
+        private bool IsMissingModelProperty(PropertyDefinition propertyDefinition)
+        {
+            return propertyDefinition != null
+                   && !propertyDefinition.ExistsOnModel
+                   && _contentTypeModelRepository.GetPropertyModel(propertyDefinition.ContentTypeID, propertyDefinition) == null
+                   && !propertyDefinition.Name.StartsWith("form", StringComparison.InvariantCultureIgnoreCase)
+                   && !propertyDefinition.Type.Name.StartsWith("form", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

@@ -2,6 +2,7 @@
 using ContentCleaner.ViewModels;
 using EPiServer;
 using EPiServer.Core;
+using EPiServer.DataAbstraction;
 using EPiServer.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,26 +13,30 @@ namespace ContentCleaner.Controllers
 {
     [ApiExplorerSettings(IgnoreApi = true)]
     [Authorize(Policy = Constants.AuthorizationPolicy)]
-    public class ContentCleanerApiController : Controller
+    public class MissingPropertiesApiController : Controller
     {
         private readonly IContentService _contentService;
         private readonly IContentRepository _contentRepository;
+        private readonly IPropertyDefinitionRepository _propertyDefinitionRepository;
 
-        public ContentCleanerApiController(IContentService contentService, IContentRepository contentRepository)
+        public MissingPropertiesApiController(IContentService contentService,
+            IContentRepository contentRepository,
+            IPropertyDefinitionRepository propertyDefinitionRepository)
         {
             _contentService = contentService;
             _contentRepository = contentRepository;
+            _propertyDefinitionRepository = propertyDefinitionRepository;
         }
 
         [HttpGet]
-        [Route("/content.cleaner/api/[action]")]
-        public IActionResult GetContentTypeUsage(int contentTypeId)
+        [Route("/missing.properties/api/[action]")]
+        public IActionResult GetMissingProperties()
         {
             try
             {
-                var contentTypeUsage = _contentService.GetContentTypeUsage(contentTypeId).ToList();
+                var missingProperties = _contentService.GetMissingProperties().ToList();
 
-                var model = new ContentUsageViewModel(1, contentTypeUsage.Count, contentTypeUsage.Count, contentTypeUsage);
+                var model = new MissingPropertiesViewModel(1, missingProperties.Count, missingProperties.Count, missingProperties);
 
                 var serializationOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
                 {
@@ -59,12 +64,12 @@ namespace ContentCleaner.Controllers
         }
 
         [HttpDelete]
-        [Route("/content.cleaner/api/[action]")]
-        public IActionResult Delete(string contentRef)
+        [Route("/missing.properties/api/[action]")]
+        public IActionResult Delete(string id)
         {
             try
             {
-                DeleteItem(contentRef);
+                DeleteItem(id);
 
                 return new OkResult();
             }
@@ -79,9 +84,13 @@ namespace ContentCleaner.Controllers
             }
         }
 
-        private void DeleteItem(string contentRef)
+        private void DeleteItem(string id)
         {
-            _contentRepository.Delete(ContentReference.Parse(contentRef), forceDelete: false, access: AccessLevel.NoAccess);
+            var propertyDefinition = _propertyDefinitionRepository.Load(int.Parse(id));
+
+            var writable = propertyDefinition.CreateWritableClone();
+
+            _propertyDefinitionRepository.Delete(writable);
         }
     }
 }

@@ -15,7 +15,14 @@ namespace ContentCleaner.Presentation
                 AuthorizationPolicy = Constants.AuthorizationPolicy
             };
 
-            return new List<MenuItem> { contentCleaner };
+            var missingProperties = new UrlMenuItem("Missing Properties", "/global/cms/missing.properties", "/missing.properties/admin")
+            {
+                IsAvailable = _ => true,
+                SortIndex = SortIndex.Last + 1,
+                AuthorizationPolicy = Constants.AuthorizationPolicy
+            };
+
+            return new List<MenuItem> { contentCleaner, missingProperties };
         }
     }
 }
